@@ -58,13 +58,68 @@ MovingElement.prototype.start = function(startTime, currentTime) {
 
 function Enemy(sprites, x, y, speed, movement, currentSprite) {
   //llamar al constructor
+  MovingElement.call(sprites, x, y, speed, movement, currentSprite)
 }
 
 // crear constructor de Dino, heredando el prototipo de MovingElement
 
 function Dino(sprites, x, y, currentSprite) {
   //llamar al constructor
+  EnviromentElement.call(sprites, x, y, currentSprite)
   this.steps = 0
+}
+
+Dino.prototype.walk = function(steps) {
+  if (!this.walkStart) {
+    this.walkStart = Date.now()
+  }
+
+  const miliseconds = Date.now() - this.walkStart - this.steps * 1000
+  const animationRate = 1000 / steps
+
+  const step = Math.floor(miliseconds / animationRate)
+
+  if (!isEven(step)) {
+    this.sprite = this.sprites[1]
+  }
+
+  if (isEven(step)) {
+    this.sprite = this.sprites[2]
+  }
+
+  if (miliseconds >= 1000) {
+    this.steps++
+  }
+}
+
+Dino.prototype.jump = function() {
+  if (!this.jumpStart) {
+    this.jumpStart = Date.now()
+  }
+
+  const jumper = () => {
+    let now = Date.now()
+    let mills = now - this.jumpStart
+    let movDelay = 400
+    if (now < this.jumpStart + movDelay * 2) {
+      if (now < this.jumpStart + movDelay) {
+        this.y = map(mills, 0, movDelay, this.startY, this.startY - 85)
+      } else {
+        mills -= movDelay
+        this.y = map(mills, 0, movDelay, this.startY - 85, this.startY)
+      }
+      requestAnimationFrame(jumper)
+    } else {
+      this.y = this.startY
+      this.jumpStart = 0
+    }
+  }
+
+  requestAnimationFrame(jumper)
+}
+
+Dino.prototype.dead = function() {
+  this.sprite = this.sprites[3]
 }
 
 function MoveTo(x, y) {
